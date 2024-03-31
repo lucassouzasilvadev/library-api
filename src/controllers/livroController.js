@@ -1,3 +1,5 @@
+import { CURSOR_FLAGS } from "mongodb";
+import { autor } from "../models/Autor.js";
 import livro from "../models/Livro.js";
 
 class LivroController {
@@ -8,7 +10,7 @@ class LivroController {
         }catch (erro) {
             res.status(500).json({ message: `${erro.message} - falha ao buscar livros` });
         }            
-    }
+    };
 
     static async listarLivroPorId(req, res) {
         try {
@@ -18,17 +20,20 @@ class LivroController {
         }catch (erro) {
             res.status(500).json({ message: `${erro.message} - falha ao buscar livros` });
         }            
-    }
+    };
 
     static async cadastrarLivro(req, res) {
+        const novoLivro = req.body
         try {
-            const novoLivro = await livro.create(req.body);
-            res.status(201).json({ message: "Livro criado com sucesso", livro: novoLivro });
+            const autorEncontrado = await autor.findById(novoLivro.autor);
+            const livroCompleto = { ...novoLivro, autor: {...autorEncontrado._doc }};
+            const livroSalvo = await livro.create(livroCompleto);
+            res.status(201).json({ message: "Livro criado com sucesso", livro: livroSalvo });
         } catch (erro){
             res.status(500).json({ message: `${erro.message} - falha ao cadastrar livro` });
         }
         
-    }
+    };
 
     static async atualizarLivro(req, res) {
         try {
@@ -37,7 +42,7 @@ class LivroController {
         }catch (erro) {
             res.status(500).json({ message: `${erro.message} - falha na atualização do livro` });
         }            
-    }
+    };
 
     static async removerLivro(req, res) {
         try {
@@ -46,6 +51,16 @@ class LivroController {
         }catch (erro) {
             res.status(500).json({ message: `${erro.message} - falha na remoção do livro` });
         }            
+    };
+
+    static async listarLivrosPorEditora(req, res) {
+        const editora = req.query.editora;
+        try {
+            const livrosPorEditora = await livro.find({ editora: editora });
+            res.status(200).json(livrosPorEditora)
+        } catch (erro) {
+            res.status(500).json({ message: `${erro.message} - falha na busca` })
+        }
     }
 
 };
